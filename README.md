@@ -17,9 +17,7 @@ GoPro Quick のタイムコード同期を使って撮影した複数の GoPro �
 sudo apt install ffmpeg
 
 # 任意 (OpenCV による検証を使う場合)
-uv venv
-uv pip install -r requirements.txt
-source .venv/bin/activate   # 以降 ./gopro_sync_stack.py は .venv の Python で実行される
+pip install -r requirements.txt
 ```
 
 OpenCV (`cv2`) がインストールされている場合は、出力後の検証で OpenCV から見たフレーム数も確認します。
@@ -56,9 +54,9 @@ OpenCV (`cv2`) がインストールされている場合は、出力後の検�
 
 ```
  #  file                        timecode         input     fps    cut[s]  cut[f]  synced output
- 0  20261026_test_s1_main.MP4   16:01:21;22  3840x2160   29.97     4.838     145  3840x2160 crf=18
- 1  20261026_test_s2_main.MP4   16:01:23;26  3840x2160   29.97     2.703      81  3840x2160 crf=18
- 2  20261026_test_all_main.MP4  16:01:26;17  3840x2160   29.97     0.000       0  1280x720 crf=26
+ 0  a.MP4   16:01:21;22  3840x2160   29.97     4.838     145  3840x2160 crf=18
+ 1  b.MP4   16:01:23;26  3840x2160   29.97     2.703      81  3840x2160 crf=18
+ 2  c.MP4  16:01:26;17  3840x2160   29.97     0.000       0  1280x720 crf=26
 
 出力開始タイムコード: 16:01:26;17  長さ: 1420.586s  フレーム数: 42574, 42574, 42574
 ```
