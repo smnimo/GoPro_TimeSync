@@ -1,0 +1,28 @@
+# 動画データ・出力
+data/
+synced/
+*.mp4
+*.MP4
+*.mov
+*.MOV
+*.sync.json
+
+# GoPro の付随ファイル
+*.LRV
+*.THM
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# OS / エディタ
+.DS_Store
+Thumbs.db
+*:Zone.Identifier
+.vscode/
+.idea/
+
+# 旧スクリプト (ローカル参照用)
+concat.sh
+sync_trim_stack_with_cut.py
