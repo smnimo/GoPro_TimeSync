@@ -258,8 +258,9 @@ def build_command(clips, args, t_len, stack_size, fps_out):
         # 解析向け: B フレームなし・短い GOP・フレーム数固定・0 始まり・余計なトラックなし
         cmd += ["-bf", "0", "-g", str(round(c.fps * args.gop)),
                 "-frames:v", str(c.frames), "-t", f"{float(c.frames / c.fps):.6f}",
-                "-pix_fmt", "yuv420p", "-avoid_negative_ts", "make_zero",
-                "-map_metadata", "-1", "-movflags", "+faststart", str(c.out)]
+                # -avoid_negative_ts make_zero は AAC のプライミング分 (約 21ms) 映像側を
+                # 後ろにずらし空の編集リストを作るので使わない (プライミングは音声トラック側で処理される)
+                "-pix_fmt", "yuv420p", "-map_metadata", "-1", "-movflags", "+faststart", str(c.out)]
 
     if args.stack:
         cmd += ["-map", "[stack]"]
@@ -269,6 +270,31 @@ def build_command(clips, args, t_len, stack_size, fps_out):
         cmd += ["-t", f"{t_len:.6f}", "-pix_fmt", "yuv420p",
                 "-movflags", "+faststart", str(args.output)]
     return cmd
+
+
+def run_ffmpeg(cmd):
+    """ffmpeg を実行し、無害な警告だけ除いて stderr (進捗表示を含む) をそのまま流す。
+
+    GoPro の映像は yuvj420p (フルレンジ) で、swscale が通るたびに
+    "deprecated pixel format used" が出るが、レンジは正しく引き継がれるので表示しない。
+    """
+    try:
+        proc = subprocess.Popen(cmd, stderr=subprocess.PIPE)
+    except FileNotFoundError:
+        sys.exit("ffmpeg が見つかりません。ffmpeg をインストールしてください")
+    out = sys.stderr.buffer
+    buf = b""
+    while chunk := proc.stderr.read1(4096):
+        buf += chunk
+        # 進捗表示は \r 区切りなので \r / \n の両方で行に分ける
+        *lines, buf = re.split(rb"(?<=[\r\n])", buf)
+        for line in lines:
+            if b"deprecated pixel format used" not in line:
+                out.write(line)
+        out.flush()
+    out.write(buf)
+    if proc.wait() != 0:
+        sys.exit(f"ffmpeg がエラー終了しました (code {proc.returncode})")
 
 
 def verify(clips):
@@ -419,13 +445,8 @@ def main():
     for o in outputs:
         o.parent.mkdir(parents=True, exist_ok=True)
 
-    print("\n🎞️  エンコード中...")
-    try:
-        subprocess.run(cmd, check=True)
-    except FileNotFoundError:
-        sys.exit("ffmpeg が見つかりません。ffmpeg をインストールしてください")
-    except subprocess.CalledProcessError as e:
-        sys.exit(f"ffmpeg がエラー終了しました (code {e.returncode})")
+    print("\n🎞️  エンコード中...", flush=True)
+    run_ffmpeg(cmd)
 
     ok = True
     if any(c.out for c in clips):

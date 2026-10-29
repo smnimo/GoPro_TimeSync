@@ -15,7 +15,11 @@ GoPro Quick のタイムコード同期を使って撮影した複数の GoPro �
 
 ```bash
 sudo apt install ffmpeg
-pip install -r requirements.txt   # 任意 (OpenCV)
+
+# 任意 (OpenCV による検証を使う場合)
+uv venv
+uv pip install -r requirements.txt
+source .venv/bin/activate   # 以降 ./gopro_sync_stack.py は .venv の Python で実行される
 ```
 
 OpenCV (`cv2`) がインストールされている場合は、出力後の検証で OpenCV から見たフレーム数も確認します。
